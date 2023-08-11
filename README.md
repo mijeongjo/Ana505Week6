@@ -1,45 +1,57 @@
-# Ana505Week6
 
-#We can clearly see from the Histograms of Petal.length 
-#and Petal.width that we can clearly seperate out Setosa species with very high confidence.
+require("datasets")
+data("iris") # load Iris Dataset
+str(iris) #view structure of dataset
 
-#However, Versicolor and Virginica Species are overlapped. 
-#If we look at the scatterplot of Sepal.Length vs Petal.Length 
-#and Petal.Width vs Petal.Length, 
-#we can distintly see a seperator that can be draw between the groups of Species.
+summary(iris) #view statistical summary of dataset
 
-#Looks like we can just use Petal.Width and Petal.Length as parameters 
-#and come with a good model. SVM seems to be a very good model for this type of data.
+head(iris, 3) #view top  rows of dataset
 
-plot(svm_model, data=iris,
-     Petal.Width~Petal.Length,
-     slice = list(Sepal.Width=3, Sepal.Length=4) 
-)
+#Preprocess the dataset
+#Since clustering is a type of Unsupervised Learning, 
+#we would not require Class Label(output) during execution of our algorithm. 
+#We will, therefore, remove Class Attribute “Species” and store it in another variable. 
+#We would then normalize the attributes between 0 and 1 using our own function.
 
-#from the graph you can see data, support vector(represented by cross sign) 
-#and decision boundry, belong to 3 types of species
+iris.new<- iris[,c(1,2,3,4)]
+iris.class<- iris[,"Species"]
+head(iris.new, 3)
 
-#White color represented predicted class for second species(versicolor)
+head(iris.class, 3)
 
-#Pink color represented predicted class for third species(virginica)
+normalize <- function(x){
+  return ((x-min(x))/(max(x)-min(x)))
+}
 
-#Also we have 52 Support vector, 
-#8 of them belongs to first species
-#(You can see 8 cross in first class), 
-#22 of them belongs to second species, 
-#21 of them belongs to third species.
+iris.new$Sepal.Length<- normalize(iris.new$Sepal.Length)
+iris.new$Sepal.Width<- normalize(iris.new$Sepal.Width)
+iris.new$Petal.Length<- normalize(iris.new$Petal.Length)
+iris.new$Petal.Width<- normalize(iris.new$Petal.Width)
+head(iris.new)
 
-#Predict each Species
-#Confusion matrix and missclassification error
-pred = predict(svm_model,iris)
-tab = table(Predicted=pred, Actual = iris$Species)
-tab
+#Apply the K-means clustering algorithm
+result<- kmeans(iris.new,3) #aplly k-means algorithm with no. of centroids(k)=3
+result$size # gives no. of records in each cluster
 
-#Get missclassification rate
-1-sum(diag(tab)/sum(tab))
+result$centers # gives value of cluster center datapoint value(3 centers for k=3)
+
+result$cluster #gives cluster vector showing the custer where each record falls
+
+#Verify results of clustering
+par(mfrow=c(2,2), mar=c(5,4,2,2))
+plot(iris.new[c(1,2)], col=result$cluster)# Plot to see how Sepal.Length and Sepal.Width data points have been distributed in clusters
+plot(iris.new[c(1,2)], col=iris.class)# Plot to see how Sepal.Length and Sepal.Width data points have been distributed originally as per "class" attribute in dataset
+plot(iris.new[c(3,4)], col=result$cluster)# Plot to see how Petal.Length and Petal.Width data points have been distributed in clusters
+plot(iris.new[c(3,4)], col=iris.class)
+
+table(result$cluster,iris.class)
+
+#correct = 36+47+50 =133
+#incorrect = 3+14=17
 
 #How did the model do?
-#What is the accuracy rate?
-Accuracy = sum(diag(tab)/(sum(tab))
+#TASK: Accuracy = number of correctly classified/(total classified) = ?
+#i.e our model has achieved ?% accuracy!
 
-SVM = 97.333%
+#133/(133+17)
+#88.66666%
